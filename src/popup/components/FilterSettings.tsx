@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { getFilterById, generateFilterCSS } from '../../utils/filters';
-import { FilterId, FilterSettings as FilterSettingsType } from '../../types/filters';
+import {
+  FilterId,
+  FilterSettings as FilterSettingsType,
+} from '../../types/filters';
 
 interface FilterSettingsProps {
   filterId: FilterId;
@@ -14,7 +17,13 @@ const FilterSettings = ({
   onCancel,
   onApply,
 }: FilterSettingsProps) => {
-  const { currentFilter, applyFilter, defaultFilter, setAsDefault, removeDefault } = useApp();
+  const {
+    currentFilter,
+    applyFilter,
+    defaultFilter,
+    setAsDefault,
+    removeDefault,
+  } = useApp();
   const filter = getFilterById(filterId);
   const isCurrentDefault = defaultFilter?.filterId === filterId;
 
@@ -78,7 +87,10 @@ const FilterSettings = ({
       if (tab.id) {
         if (currentFilter) {
           // Re-apply the saved filter
-          const css = generateFilterCSS(currentFilter.filterId, currentFilter.settings);
+          const css = generateFilterCSS(
+            currentFilter.filterId,
+            currentFilter.settings
+          );
           await chrome.tabs.sendMessage(tab.id, {
             action: 'applyFilter',
             css,
@@ -122,63 +134,64 @@ const FilterSettings = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <img
-          src={`/icons/filters/${filter.id}.png`}
-          alt={filter.name}
-          className="w-32 h-auto mx-auto mb-2 drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
-        />
-        <h2 className="text-2xl font-bold text-slate-100">{filter.name}</h2>
-      </div>
+    <div className="flex flex-col flex-1">
+      <div className="flex-1 flex flex-col justify-around py-6">
+        <div className="text-center">
+          <img
+            src={`/icons/filters/${filter.id}.png`}
+            alt={filter.name}
+            className="w-48 h-auto mx-auto mb-4 drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
+          />
+          <h2 className="text-2xl font-bold text-slate-100">{filter.name}</h2>
+        </div>
+        <div className="space-y-4">
+          {filter.availableSettings.map((setting) => (
+            <div key={setting.key} className="space-y-2">
+              {setting.type === 'slider' && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium text-slate-200">
+                      {setting.label}
+                    </label>
+                    <span className="text-sm text-slate-400">
+                      {settings[setting.key]}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={setting.min}
+                    max={setting.max}
+                    step={setting.step}
+                    value={settings[setting.key] as number}
+                    onChange={(e) =>
+                      handleSettingChange(setting.key, Number(e.target.value))
+                    }
+                    className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                  />
+                </>
+              )}
 
-      <div className="space-y-4">
-        {filter.availableSettings.map((setting) => (
-          <div key={setting.key} className="space-y-2">
-            {setting.type === 'slider' && (
-              <>
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-slate-200">
+              {setting.type === 'checkbox' && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings[setting.key] as boolean}
+                    onChange={(e) =>
+                      handleSettingChange(setting.key, e.target.checked)
+                    }
+                    className="w-4 h-4 text-primary-500 bg-slate-600 border-slate-500 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-slate-200">
                     {setting.label}
-                  </label>
-                  <span className="text-sm text-slate-400">
-                    {settings[setting.key]}
                   </span>
-                </div>
-                <input
-                  type="range"
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  value={settings[setting.key] as number}
-                  onChange={(e) =>
-                    handleSettingChange(setting.key, Number(e.target.value))
-                  }
-                  className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
-                />
-              </>
-            )}
-
-            {setting.type === 'checkbox' && (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings[setting.key] as boolean}
-                  onChange={(e) =>
-                    handleSettingChange(setting.key, e.target.checked)
-                  }
-                  className="w-4 h-4 text-primary-500 bg-slate-600 border-slate-500 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-slate-200">
-                  {setting.label}
-                </span>
-              </label>
-            )}
-          </div>
-        ))}
+                </label>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="border-t border-slate-600 pt-4">
+      <div className="border-t border-slate-600 pt-4 pb-4">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
