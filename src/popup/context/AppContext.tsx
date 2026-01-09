@@ -1,25 +1,31 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterId, FilterSettings } from '../../types/filters';
-import { WebsiteFilter } from '../../types/storage';
+import { WebsiteFilter, DefaultFilter } from '../../types/storage';
 import {
   getCurrentDomain,
-  getExtensionEnabled,
-  setExtensionEnabled,
+  getExtensionDisabled,
+  setExtensionDisabled,
   getFilterForWebsite,
   setFilterForWebsite,
   removeFilterForWebsite,
   getWebsiteFilters,
+  getDefaultFilter,
+  setDefaultFilter,
+  clearDefaultFilter,
 } from '../../utils/storage';
 
 interface AppContextType {
   currentDomain: string;
-  extensionEnabled: boolean;
+  extensionDisabled: boolean;
   currentFilter: WebsiteFilter | null;
   websiteFilters: Record<string, WebsiteFilter>;
+  defaultFilter: DefaultFilter | null;
   isLoading: boolean;
   toggleExtension: () => Promise<void>;
   applyFilter: (filterId: FilterId, settings: FilterSettings) => Promise<void>;
   removeFilter: (domain?: string) => Promise<void>;
+  setAsDefault: (filterId: FilterId, settings: FilterSettings) => Promise<void>;
+  removeDefault: () => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -39,27 +45,30 @@ interface AppProviderProps {
 
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [currentDomain, setCurrentDomain] = useState<string>('');
-  const [extensionEnabled, setExtensionEnabledState] = useState<boolean>(true);
+  const [extensionDisabledState, setExtensionDisabledState] = useState<boolean>(false);
   const [currentFilter, setCurrentFilter] = useState<WebsiteFilter | null>(
     null
   );
   const [websiteFilters, setWebsiteFilters] = useState<
     Record<string, WebsiteFilter>
   >({});
+  const [defaultFilterState, setDefaultFilterState] = useState<DefaultFilter | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
       const domain = await getCurrentDomain();
-      const enabled = await getExtensionEnabled();
+      const disabled = await getExtensionDisabled();
       const filter = await getFilterForWebsite(domain);
       const allFilters = await getWebsiteFilters();
+      const defaultFlt = await getDefaultFilter();
 
       setCurrentDomain(domain);
-      setExtensionEnabledState(enabled);
+      setExtensionDisabledState(disabled);
       setCurrentFilter(filter);
       setWebsiteFilters(allFilters);
+      setDefaultFilterState(defaultFlt);
     } finally {
       setIsLoading(false);
     }
@@ -80,9 +89,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }, []);
 
   const toggleExtension = async () => {
-    const newState = !extensionEnabled;
-    await setExtensionEnabled(newState);
-    setExtensionEnabledState(newState);
+    const newState = !extensionDisabledState;
+    await setExtensionDisabled(newState);
+    setExtensionDisabledState(newState);
   };
 
   const applyFilter = async (filterId: FilterId, settings: FilterSettings) => {
@@ -102,17 +111,30 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     await loadData();
   };
 
+  const setAsDefault = async (filterId: FilterId, settings: FilterSettings) => {
+    await setDefaultFilter(filterId, settings);
+    await loadData();
+  };
+
+  const removeDefault = async () => {
+    await clearDefaultFilter();
+    await loadData();
+  };
+
   return (
     <AppContext.Provider
       value={{
         currentDomain,
-        extensionEnabled,
+        extensionDisabled: extensionDisabledState,
         currentFilter,
         websiteFilters,
+        defaultFilter: defaultFilterState,
         isLoading,
         toggleExtension,
         applyFilter,
         removeFilter,
+        setAsDefault,
+        removeDefault,
         refreshData,
       }}
     >

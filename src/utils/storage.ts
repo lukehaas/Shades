@@ -1,9 +1,14 @@
 import {
   StorageData,
   WebsiteFilter,
+  DefaultFilter,
   DEFAULT_STORAGE,
 } from '../types/storage';
 import { FilterId, FilterSettings } from '../types/filters';
+
+export const normalizeDomain = (hostname: string): string => {
+  return hostname.replace(/^www\./, '');
+};
 
 export const getStorageData = async (): Promise<StorageData> => {
   const result = await chrome.storage.local.get(DEFAULT_STORAGE);
@@ -42,13 +47,13 @@ export const removeFilterForWebsite = async (
   await chrome.storage.local.set({ websiteFilters: data.websiteFilters });
 };
 
-export const getExtensionEnabled = async (): Promise<boolean> => {
+export const getExtensionDisabled = async (): Promise<boolean> => {
   const data = await getStorageData();
-  return data.extensionEnabled;
+  return data.extensionDisabled;
 };
 
-export const setExtensionEnabled = async (enabled: boolean): Promise<void> => {
-  await chrome.storage.local.set({ extensionEnabled: enabled });
+export const setExtensionDisabled = async (disabled: boolean): Promise<void> => {
+  await chrome.storage.local.set({ extensionDisabled: disabled });
 };
 
 export const getCurrentDomain = async (): Promise<string> => {
@@ -57,8 +62,26 @@ export const getCurrentDomain = async (): Promise<string> => {
 
   try {
     const url = new URL(tab.url);
-    return url.hostname;
+    return normalizeDomain(url.hostname);
   } catch {
     return '';
   }
+};
+
+export const getDefaultFilter = async (): Promise<DefaultFilter | null> => {
+  const data = await getStorageData();
+  return data.defaultFilter;
+};
+
+export const setDefaultFilter = async (
+  filterId: FilterId,
+  settings: FilterSettings
+): Promise<void> => {
+  await chrome.storage.local.set({
+    defaultFilter: { filterId, settings },
+  });
+};
+
+export const clearDefaultFilter = async (): Promise<void> => {
+  await chrome.storage.local.set({ defaultFilter: null });
 };

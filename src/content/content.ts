@@ -1,6 +1,10 @@
 const FILTER_OVERLAY_ID = 'shades-filter-overlay';
 const FILTER_STYLE_ID = 'shades-filter-style';
 
+function normalizeDomain(hostname: string): string {
+  return hostname.replace(/^www\./, '');
+}
+
 // Listen for messages from popup/background
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'applyFilter') {
@@ -68,23 +72,37 @@ function removeFilter() {
 // Initialize filter immediately to prevent flash of unstyled content
 async function initializeFilter() {
   try {
-    const domain = window.location.hostname;
+    const domain = normalizeDomain(window.location.hostname);
 
     // Get stored data
     const data = await chrome.storage.local.get({
-      extensionEnabled: true,
+      extensionDisabled: false,
       websiteFilters: {},
+      defaultFilter: null,
     });
 
-    if (!data.extensionEnabled) return;
+    if (data.extensionDisabled) return;
 
+    // Check for domain-specific filter first
     const websiteFilter = data.websiteFilters[domain];
-    if (!websiteFilter) return;
 
-    const { filterId, settings } = websiteFilter;
-    const css = generateFilterCSS(filterId, settings);
+    if (websiteFilter) {
+      const { filterId, settings } = websiteFilter;
+      // 'none' means explicitly no filter, don't fall back to default
+      if (filterId === 'none') {
+        return;
+      }
+      const css = generateFilterCSS(filterId, settings);
+      applyFilter(css, filterId, settings);
+      return;
+    }
 
-    applyFilter(css, filterId, settings);
+    // Fall back to default filter if no domain-specific filter
+    if (data.defaultFilter) {
+      const { filterId, settings } = data.defaultFilter;
+      const css = generateFilterCSS(filterId, settings);
+      applyFilter(css, filterId, settings);
+    }
   } catch (error) {
     // Silently fail - background script will handle it
     console.error('Error initializing filter:', error);
@@ -96,39 +114,34 @@ function generateFilterCSS(
   filterId: string,
   settings: Record<string, unknown>
 ): string {
-  const intensity = ((settings.intensity as number) || 100) / 100;
-  const opacity = ((settings.opacity as number) || 100) / 100;
+  const userintensity = (settings.intensity as number) || 100;
+  const intensity = userintensity / 100;
+  const eclipseColor = 255 - Math.round((100 - userintensity)/2);
 
   const filterStyles: Record<string, string> = {
     'rose-tint': `
-      background-color: rgba(255, 100, 150, ${intensity * 0.4});
+      background-color: rgba(255, 100, 150, ${intensity * 0.8});
       mix-blend-mode: multiply;
-      opacity: ${opacity};
     `,
     'sunny-brown': `
-      background-color: rgba(180, 140, 80, ${intensity * 0.45});
+      background-color: rgba(180, 140, 80, ${intensity * 0.7});
       mix-blend-mode: multiply;
-      opacity: ${opacity};
     `,
     'classic-gray': `
-      background-color: rgba(128, 128, 128, ${intensity});
-      mix-blend-mode: saturation;
-      opacity: ${opacity};
+      background-color: rgba(116, 116, 116, ${intensity * 0.8});
+      mix-blend-mode: multiply;
     `,
     'emerald-green': `
-      background-color: rgba(80, 180, 120, ${intensity * 0.35});
+      background-color: rgba(80, 180, 120, ${intensity * 0.6});
       mix-blend-mode: multiply;
-      opacity: ${opacity};
     `,
     'amber-vision': `
-      background-color: rgba(255, 180, 50, ${intensity * 0.4});
+      background-color: rgba(255, 180, 50, ${intensity * 0.8});
       mix-blend-mode: multiply;
-      opacity: ${opacity};
     `,
     'solar-eclipse': `
-      background-color: rgba(255, 255, 255, ${intensity});
+      background-color: rgba(${eclipseColor}, ${eclipseColor}, ${eclipseColor}, 1);
       mix-blend-mode: difference;
-      opacity: ${opacity};
     `,
   };
 

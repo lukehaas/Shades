@@ -1,4 +1,5 @@
 export type FilterId =
+  | 'none'
   | 'rose-tint'
   | 'sunny-brown'
   | 'classic-gray'
@@ -8,14 +9,12 @@ export type FilterId =
 
 export interface FilterSettings {
   intensity: number;
-  opacity: number;
   [key: string]: number | boolean;
 }
 
 export interface Filter {
   id: FilterId;
   name: string;
-  icon: string;
   description: string;
   defaultSettings: FilterSettings;
   availableSettings: FilterSettingConfig[];

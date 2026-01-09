@@ -5,12 +5,19 @@ export interface WebsiteFilter {
   settings: FilterSettings;
 }
 
+export interface DefaultFilter {
+  filterId: FilterId;
+  settings: FilterSettings;
+}
+
 export interface StorageData {
   websiteFilters: Record<string, WebsiteFilter>;
-  extensionEnabled: boolean;
+  extensionDisabled: boolean;
+  defaultFilter: DefaultFilter | null;
 }
 
 export const DEFAULT_STORAGE: StorageData = {
   websiteFilters: {},
-  extensionEnabled: true,
+  extensionDisabled: false,
+  defaultFilter: null,
 };

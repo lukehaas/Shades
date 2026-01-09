@@ -20,32 +20,35 @@ const FilterOption = ({
     <div
       className={`relative p-4 rounded-lg border-2 transition cursor-pointer ${
         isActive
-          ? 'border-primary-600 bg-primary-50'
-          : 'border-gray-200 bg-white hover:border-primary-300'
+          ? 'border-primary-500 bg-slate-700'
+          : 'border-slate-600 bg-slate-700 hover:border-primary-400'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
     >
       <div className="flex flex-col items-center gap-2">
-        <div className="text-4xl">{filter.icon}</div>
+        <img
+          src={`/icons/filters/${filter.id}.png`}
+          alt={filter.name}
+          className="w-32 h-auto drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
+        />
         <div className="text-center">
-          <p className="font-medium text-gray-900">{filter.name}</p>
-          <p className="text-xs text-gray-500">{filter.description}</p>
+          <p className="font-medium text-slate-100">{filter.name}</p>
         </div>
       </div>
 
-      {isHovered && (
+      {(isHovered || isActive) && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onSettingsClick();
           }}
-          className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100 transition"
+          className="absolute top-2 right-2 p-1 bg-slate-600 rounded-full shadow-md hover:bg-slate-500 transition"
           aria-label="Filter settings"
         >
           <svg
-            className="w-4 h-4 text-gray-600"
+            className="w-4 h-4 text-slate-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

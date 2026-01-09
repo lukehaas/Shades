@@ -5,19 +5,19 @@ interface HeaderProps {
 }
 
 const Header = ({ onSettingsClick }: HeaderProps) => {
-  const { extensionEnabled, toggleExtension } = useApp();
+  const { extensionDisabled, toggleExtension } = useApp();
 
   return (
-    <header className="bg-white border-b border-gray-200 p-4">
+    <header className="bg-slate-900 border-b border-slate-700 p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-gray-900">Shades</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Shades</h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={onSettingsClick}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg transition"
             aria-label="Settings"
           >
             <svg
@@ -43,18 +43,28 @@ const Header = ({ onSettingsClick }: HeaderProps) => {
 
           <button
             onClick={toggleExtension}
-            role="switch"
-            aria-checked={extensionEnabled}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-              extensionEnabled ? 'bg-primary-600' : 'bg-gray-300'
-            }`}
-            aria-label="Toggle extension"
+            className={'p-2 rounded-lg transition text-slate-400 hover:text-slate-200 hover:bg-slate-700'}
+            aria-label={extensionDisabled ? 'Enable extension' : 'Disable extension'}
           >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                extensionEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3v6"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6.34 7.34a8 8 0 1011.32 0"
+              />
+            </svg>
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { getFilterForWebsite, getExtensionEnabled } from '../utils/storage';
+import { getFilterForWebsite, getExtensionDisabled, getDefaultFilter, normalizeDomain } from '../utils/storage';
 import { generateFilterCSS } from '../utils/filters';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -16,7 +16,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 });
 
 chrome.storage.onChanged.addListener(async (changes) => {
-  if (changes.websiteFilters || changes.extensionEnabled) {
+  if (changes.websiteFilters || changes.extensionDisabled || changes.defaultFilter) {
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
@@ -47,10 +47,10 @@ async function applyFilterToTab(tabId: number) {
     if (isRestrictedUrl(tab.url)) return;
 
     const url = new URL(tab.url);
-    const domain = url.hostname;
+    const domain = normalizeDomain(url.hostname);
 
-    const enabled = await getExtensionEnabled();
-    if (!enabled) {
+    const disabled = await getExtensionDisabled();
+    if (disabled) {
       await chrome.tabs.sendMessage(tabId, {
         action: 'removeFilter',
       });
@@ -60,6 +60,14 @@ async function applyFilterToTab(tabId: number) {
     const websiteFilter = await getFilterForWebsite(domain);
 
     if (websiteFilter) {
+      // 'none' means explicitly no filter, don't fall back to default
+      if (websiteFilter.filterId === 'none') {
+        await chrome.tabs.sendMessage(tabId, {
+          action: 'removeFilter',
+        });
+        return;
+      }
+
       const css = generateFilterCSS(
         websiteFilter.filterId,
         websiteFilter.settings
@@ -70,6 +78,23 @@ async function applyFilterToTab(tabId: number) {
         css,
         filterId: websiteFilter.filterId,
         settings: websiteFilter.settings,
+      });
+      return;
+    }
+
+    // Fall back to default filter if no domain-specific filter
+    const defaultFilter = await getDefaultFilter();
+    if (defaultFilter) {
+      const css = generateFilterCSS(
+        defaultFilter.filterId,
+        defaultFilter.settings
+      );
+
+      await chrome.tabs.sendMessage(tabId, {
+        action: 'applyFilter',
+        css,
+        filterId: defaultFilter.filterId,
+        settings: defaultFilter.settings,
       });
     } else {
       await chrome.tabs.sendMessage(tabId, {

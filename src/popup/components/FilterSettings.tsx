@@ -14,12 +14,14 @@ const FilterSettings = ({
   onCancel,
   onApply,
 }: FilterSettingsProps) => {
-  const { currentFilter, applyFilter } = useApp();
+  const { currentFilter, applyFilter, defaultFilter, setAsDefault, removeDefault } = useApp();
   const filter = getFilterById(filterId);
+  const isCurrentDefault = defaultFilter?.filterId === filterId;
 
   const [settings, setSettings] = useState<FilterSettingsType>(
-    filter?.defaultSettings || { intensity: 50, opacity: 100 }
+    filter?.defaultSettings || { intensity: 50 }
   );
+  const [makeDefault, setMakeDefault] = useState(isCurrentDefault);
 
   // Send preview to content script
   const sendPreview = useCallback(
@@ -98,6 +100,17 @@ const FilterSettings = ({
 
   const handleApply = async () => {
     await applyFilter(filter.id, settings);
+
+    // Handle default filter setting
+    if (makeDefault && !isCurrentDefault) {
+      await setAsDefault(filter.id, settings);
+    } else if (!makeDefault && isCurrentDefault) {
+      await removeDefault();
+    } else if (makeDefault && isCurrentDefault) {
+      // Update default settings if already default
+      await setAsDefault(filter.id, settings);
+    }
+
     onApply();
   };
 
@@ -111,9 +124,12 @@ const FilterSettings = ({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="text-5xl mb-2">{filter.icon}</div>
-        <h2 className="text-2xl font-bold text-gray-900">{filter.name}</h2>
-        <p className="text-sm text-gray-600">{filter.description}</p>
+        <img
+          src={`/icons/filters/${filter.id}.png`}
+          alt={filter.name}
+          className="w-32 h-auto mx-auto mb-2 drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
+        />
+        <h2 className="text-2xl font-bold text-slate-100">{filter.name}</h2>
       </div>
 
       <div className="space-y-4">
@@ -122,10 +138,10 @@ const FilterSettings = ({
             {setting.type === 'slider' && (
               <>
                 <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-slate-200">
                     {setting.label}
                   </label>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-slate-400">
                     {settings[setting.key]}
                   </span>
                 </div>
@@ -138,7 +154,7 @@ const FilterSettings = ({
                   onChange={(e) =>
                     handleSettingChange(setting.key, Number(e.target.value))
                   }
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                  className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
                 />
               </>
             )}
@@ -151,9 +167,9 @@ const FilterSettings = ({
                   onChange={(e) =>
                     handleSettingChange(setting.key, e.target.checked)
                   }
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-500 bg-slate-600 border-slate-500 rounded focus:ring-primary-500"
                 />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-slate-200">
                   {setting.label}
                 </span>
               </label>
@@ -162,16 +178,30 @@ const FilterSettings = ({
         ))}
       </div>
 
+      <div className="border-t border-slate-600 pt-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={makeDefault}
+            onChange={(e) => setMakeDefault(e.target.checked)}
+            className="w-4 h-4 text-primary-500 bg-slate-600 border-slate-500 rounded focus:ring-primary-500"
+          />
+          <span className="text-sm font-medium text-slate-200">
+            Set as default
+          </span>
+        </label>
+      </div>
+
       <div className="flex gap-3">
         <button
           onClick={handleCancel}
-          className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+          className="flex-1 px-4 py-2 text-slate-200 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition font-medium"
         >
           Cancel
         </button>
         <button
           onClick={handleReset}
-          className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+          className="flex-1 px-4 py-2 text-slate-200 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition font-medium"
         >
           Reset
         </button>

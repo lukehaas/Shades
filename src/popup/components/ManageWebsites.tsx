@@ -3,12 +3,22 @@ import { FILTERS } from '../../utils/filters';
 import { FilterId } from '../../types/filters';
 import { setFilterForWebsite } from '../../utils/storage';
 
-const ManageWebsites = () => {
+interface ManageWebsitesProps {
+  onBack: () => void;
+}
+
+const ManageWebsites = ({ onBack }: ManageWebsitesProps) => {
   const { websiteFilters, removeFilter, refreshData } = useApp();
 
   const websites = Object.entries(websiteFilters);
 
   const handleFilterChange = async (domain: string, newFilterId: FilterId) => {
+    if (newFilterId === 'none') {
+      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+      await refreshData();
+      return;
+    }
+
     const filter = FILTERS.find((f) => f.id === newFilterId);
     if (!filter) return;
 
@@ -21,27 +31,46 @@ const ManageWebsites = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Manage Websites</h2>
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="relative flex items-center justify-center pb-4">
+        <button
+          onClick={onBack}
+          className="absolute left-0 p-2 text-slate-400 hover:bg-slate-700 rounded-lg transition"
+          aria-label="Go back"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <h2 className="text-xl font-bold text-slate-100">Manage Websites</h2>
       </div>
 
       {websites.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No websites with filters yet</p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-slate-400">No websites with filters yet</p>
+          <p className="text-sm text-slate-500 mt-2">
             Apply a filter to a website to see it here
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="flex-1 overflow-y-auto space-y-2">
           {websites.map(([domain, websiteFilter]) => (
             <div
               key={domain}
-              className="flex items-center justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg"
+              className="flex items-center justify-between gap-2 p-2 bg-slate-700 border border-slate-600 rounded-lg"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-slate-100 truncate">
                   {domain}
                 </p>
               </div>
@@ -52,8 +81,9 @@ const ManageWebsites = () => {
                   onChange={(e) =>
                     handleFilterChange(domain, e.target.value as FilterId)
                   }
-                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="text-sm bg-slate-600 text-slate-200 border border-slate-500 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
+                  <option value="none">None</option>
                   {FILTERS.map((filter) => (
                     <option key={filter.id} value={filter.id}>
                       {filter.name}
@@ -63,7 +93,7 @@ const ManageWebsites = () => {
 
                 <button
                   onClick={() => handleDelete(domain)}
-                  className="p-1 text-red-600 hover:bg-red-50 rounded transition"
+                  className="p-1 text-red-400 hover:bg-slate-600 rounded transition"
                   aria-label="Delete filter"
                 >
                   <svg

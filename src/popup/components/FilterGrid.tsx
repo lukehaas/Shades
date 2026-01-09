@@ -8,25 +8,33 @@ interface FilterGridProps {
 }
 
 const FilterGrid = ({ onFilterSettingsClick }: FilterGridProps) => {
-  const { currentDomain, currentFilter, applyFilter, removeFilter } = useApp();
+  const { currentDomain, currentFilter, defaultFilter, applyFilter } = useApp();
+
+  // Determine the active filter: website-specific (if not 'none') or default
+  const activeFilterId =
+    currentFilter && currentFilter.filterId !== 'none'
+      ? currentFilter.filterId
+      : !currentFilter && defaultFilter
+        ? defaultFilter.filterId
+        : null;
 
   const handleFilterClick = async (filterId: FilterId) => {
     const filter = FILTERS.find((f) => f.id === filterId);
     if (!filter) return;
 
-    if (currentFilter?.filterId === filterId) {
-      await removeFilter();
+    if (activeFilterId === filterId) {
+      // Clicking active filter sets to 'none' (explicitly no filter)
+      await applyFilter('none', { intensity: 0 });
     } else {
       await applyFilter(filter.id, filter.defaultSettings);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {currentDomain && (
         <div className="text-center">
-          <p className="text-sm text-gray-600">Current website:</p>
-          <p className="text-lg font-semibold text-gray-900">{currentDomain}</p>
+          <p className="text-2xl font-semibold text-slate-50">{currentDomain}</p>
         </div>
       )}
 
@@ -35,7 +43,7 @@ const FilterGrid = ({ onFilterSettingsClick }: FilterGridProps) => {
           <FilterOption
             key={filter.id}
             filter={filter}
-            isActive={currentFilter?.filterId === filter.id}
+            isActive={activeFilterId === filter.id}
             onClick={() => handleFilterClick(filter.id)}
             onSettingsClick={() => onFilterSettingsClick(filter.id)}
           />
