@@ -9,7 +9,7 @@ We all know that familiar feeling of opening a website and immediately having yo
 But now, instead of reaching for protective eyewear, this browser extension can save your eyes and eyesight.
 Pick from a selection of sunglasses inspired filters and browse the web in comfort.
 
-![sunglasses](/assets/images/sunglasses2.gif)
+![sunglasses](/assets/images/brian-breakfast-club.gif)
 
 ## Why another color filtering extension?
 
