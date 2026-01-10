@@ -11,8 +11,26 @@ Pick from a selection of sunglasses inspired filters and browse the web in comfo
 
 ![sunglasses](/assets/images/sunglasses2.gif)
 
+## Why another color filtering extension?
+
+I have three reasons for this.
+
+1. After using many extensions of this nature, I have come to the conclusion that direct color manipulation of web content should be avoided. Those solutions always create problems on some sites, making sites less usable and also often less performant. The best way to alter the color of a website is with a simple overlay.
+
+2. Good UX. This extension has a stripped down feature set, just providing the core essentials. This simplicity makes it easier to provide an intuitive and usable interface.
+
+3. Privacy focused. This extension is open source and does not send your data anywhere. This is very important for an extension of this nature that requires direct access to the web pages you are viewing.
+
+## Screens
+
+Select your preferred filter on the main screen.
+
 ![main screen](/assets/images/main.png)
 
+Each filter has a settings screen where you can set the intensity and toggle it as the default filter.
+
 ![settings](/assets/images/settings.png)
+
+Control which websites get which filter.
 
 ![manage websites](/assets/images/manage-websites.png)
