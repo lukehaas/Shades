@@ -34,3 +34,7 @@ Each filter has a settings screen where you can set the intensity and toggle it 
 Control which websites get which filter.
 
 ![manage websites](/assets/images/manage-websites.png)
+
+## Example
+
+![example](/assets/images/example.png)
