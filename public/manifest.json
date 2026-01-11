@@ -1,10 +1,30 @@
 {
   "manifest_version": 3,
-  "name": "Shades",
-  "version": "1.0.0",
-  "description": "Choose from a selection of overlay filters to make browsing the web more comfortable",
+  "name": "Shades - Because the web is too bright",
+  "version": "1.1.0",
+  "description": "Use Shades to protect your eyes while browsing the web. Apply customizable color filters to reduce eye strain, filter blue light, and enhance visual comfort.",
   "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": ["<all_urls>"],
+  "commands": {
+    "toggle-extension": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Toggle Shades on/off"
+    },
+    "toggle-filter": {
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
+      "description": "Toggle filter for current site"
+    },
+    "toggle-invert": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Toggle invert filter"
+    }
+  },
   "action": {
     "default_popup": "index.html",
     "default_title": "Shades",

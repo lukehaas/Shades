@@ -1,6 +1,6 @@
 {
   "name": "shades-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Chrome extension that provides color filter overlays to make browsing more comfortable",
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "package": "npm run build && cd dist && zip -r ../shades-$npm_package_version.zip . && cd .. && echo \"Created shades-$npm_package_version.zip\""
   },
   "repository": {
     "type": "git",

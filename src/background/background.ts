@@ -1,9 +1,94 @@
-import { getFilterForWebsite, getExtensionDisabled, getDefaultFilter, normalizeDomain } from '../utils/storage';
-import { generateFilterCSS } from '../utils/filters';
+import {
+  getFilterForWebsite,
+  getExtensionDisabled,
+  setExtensionDisabled,
+  getDefaultFilter,
+  setFilterForWebsite,
+  removeFilterForWebsite,
+  normalizeDomain,
+} from '../utils/storage';
+import { generateFilterCSS, getFilterById } from '../utils/filters';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Shades extension installed');
 });
+
+// Handle keyboard shortcuts
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'toggle-extension') {
+    const disabled = await getExtensionDisabled();
+    await setExtensionDisabled(!disabled);
+  } else if (command === 'toggle-filter') {
+    await toggleCurrentFilter();
+  } else if (command === 'toggle-invert') {
+    await toggleSolarEclipse();
+  }
+});
+
+async function toggleCurrentFilter() {
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (!tab.url || !tab.id) return;
+
+    const disabled = await getExtensionDisabled();
+    if (disabled) return;
+
+    const url = new URL(tab.url);
+    const domain = normalizeDomain(url.hostname);
+
+    const websiteFilter = await getFilterForWebsite(domain);
+    const defaultFilter = await getDefaultFilter();
+
+    if (websiteFilter && websiteFilter.filterId !== 'none') {
+      // Site-specific filter is active, turn it off
+      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+    } else if (!websiteFilter && defaultFilter) {
+      // Default filter is applied, block it for this site
+      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+    } else if (websiteFilter?.filterId === 'none') {
+      // Filter is explicitly 'none', remove override to restore default
+      await removeFilterForWebsite(domain);
+    }
+  } catch (error) {
+    console.error('Error toggling filter:', error);
+  }
+}
+
+async function toggleSolarEclipse() {
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (!tab.url || !tab.id) return;
+
+    const disabled = await getExtensionDisabled();
+    if (disabled) return;
+
+    const url = new URL(tab.url);
+    const domain = normalizeDomain(url.hostname);
+
+    const websiteFilter = await getFilterForWebsite(domain);
+    const solarEclipse = getFilterById('solar-eclipse');
+
+    if (websiteFilter?.filterId === 'solar-eclipse') {
+      // Solar eclipse is active, turn it off
+      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+    } else if (solarEclipse) {
+      // Apply solar eclipse
+      await setFilterForWebsite(
+        domain,
+        'solar-eclipse',
+        solarEclipse.defaultSettings
+      );
+    }
+  } catch (error) {
+    console.error('Error toggling solar eclipse:', error);
+  }
+}
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
   await applyFilterToTab(activeInfo.tabId);
@@ -16,7 +101,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 });
 
 chrome.storage.onChanged.addListener(async (changes) => {
-  if (changes.websiteFilters || changes.extensionDisabled || changes.defaultFilter) {
+  if (
+    changes.websiteFilters ||
+    changes.extensionDisabled ||
+    changes.defaultFilter
+  ) {
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
