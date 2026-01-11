@@ -47,7 +47,7 @@ function applyFilter(
   if (filterId === 'solar-eclipse' && settings.excludeImages) {
     const intensity = (settings.intensity as number) / 100 || 1;
     style.textContent += `
-    img, video, canvas, iframe, [style*="background-image"] {
+    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, iframe, [style*="background-image"] {
       filter: invert(${intensity}) !important;
     }
     `;
@@ -116,7 +116,7 @@ function generateFilterCSS(
 ): string {
   const userintensity = (settings.intensity as number) || 100;
   const intensity = userintensity / 100;
-  const eclipseColor = 255 - Math.round((100 - userintensity)/2);
+  const eclipseColor = 255 - Math.round((100 - userintensity) / 2);
 
   const filterStyles: Record<string, string> = {
     'rose-tint': `
