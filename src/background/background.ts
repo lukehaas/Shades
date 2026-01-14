@@ -127,6 +127,26 @@ function isRestrictedUrl(url: string): boolean {
   return restrictedProtocols.some((protocol) => url.startsWith(protocol));
 }
 
+async function sendMessageToTab(
+  tabId: number,
+  message: Record<string, unknown>
+): Promise<boolean> {
+  try {
+    await chrome.tabs.sendMessage(tabId, message);
+    return true;
+  } catch {
+    // Content script not injected (e.g., tab was open before extension installed)
+    // Reload the tab so the content script gets injected
+    try {
+      await chrome.tabs.reload(tabId);
+      return false; // Message wasn't sent, but tab will reload with content script
+    } catch (reloadError) {
+      console.error('Failed to reload tab:', reloadError);
+      return false;
+    }
+  }
+}
+
 async function applyFilterToTab(tabId: number) {
   try {
     const tab = await chrome.tabs.get(tabId);
@@ -140,9 +160,7 @@ async function applyFilterToTab(tabId: number) {
 
     const disabled = await getExtensionDisabled();
     if (disabled) {
-      await chrome.tabs.sendMessage(tabId, {
-        action: 'removeFilter',
-      });
+      await sendMessageToTab(tabId, { action: 'removeFilter' });
       return;
     }
 
@@ -151,9 +169,7 @@ async function applyFilterToTab(tabId: number) {
     if (websiteFilter) {
       // 'none' means explicitly no filter, don't fall back to default
       if (websiteFilter.filterId === 'none') {
-        await chrome.tabs.sendMessage(tabId, {
-          action: 'removeFilter',
-        });
+        await sendMessageToTab(tabId, { action: 'removeFilter' });
         return;
       }
 
@@ -162,7 +178,7 @@ async function applyFilterToTab(tabId: number) {
         websiteFilter.settings
       );
 
-      await chrome.tabs.sendMessage(tabId, {
+      await sendMessageToTab(tabId, {
         action: 'applyFilter',
         css,
         filterId: websiteFilter.filterId,
@@ -179,16 +195,14 @@ async function applyFilterToTab(tabId: number) {
         defaultFilter.settings
       );
 
-      await chrome.tabs.sendMessage(tabId, {
+      await sendMessageToTab(tabId, {
         action: 'applyFilter',
         css,
         filterId: defaultFilter.filterId,
         settings: defaultFilter.settings,
       });
     } else {
-      await chrome.tabs.sendMessage(tabId, {
-        action: 'removeFilter',
-      });
+      await sendMessageToTab(tabId, { action: 'removeFilter' });
     }
   } catch (error) {
     console.error('Error applying filter to tab:', error);
