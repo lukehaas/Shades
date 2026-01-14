@@ -1,6 +1,4 @@
-# Shades
-
-## Because the web is too bright
+# Shades - Because the web is too bright
 
 We all know that familiar feeling of opening a website and immediately having your retinas burnt out.
 
@@ -38,3 +36,8 @@ Control which websites get which filter.
 ## Example
 
 ![example](/assets/images/example.png)
+
+## Download
+
+[![Chrome Web Store](https://raw.githubusercontent.com/lukehaas/Shades/refs/heads/main/assets/images/chrome-store.png)](https://chromewebstore.google.com/detail/shades-because-the-web-is/cnmgiengbdlfjgfocfagcnlimkmpclid)
+[Chrome Web Store](https://chromewebstore.google.com/detail/shades-because-the-web-is/cnmgiengbdlfjgfocfagcnlimkmpclid)
