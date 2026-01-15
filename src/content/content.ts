@@ -42,15 +42,20 @@ function applyFilter(
       ${css}
     }
   `;
-
-  // Only apply image exclusion for the invert filter
-  if (filterId === 'solar-eclipse' && settings.excludeImages) {
-    const intensity = (settings.intensity as number) / 100 || 1;
-    style.textContent += `
-    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, iframe, [style*="background-image"] {
+  if (filterId === 'solar-eclipse') {
+    if (settings.excludeImages) {
+      const intensity = (settings.intensity as number) / 100 || 1;
+      style.textContent += `
+    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, iframe, smp-toucan-player, [style*="background-image"] {
       filter: invert(${intensity}) !important;
     }
     `;
+    }
+    style.textContent += `
+  html, body {
+      background-color: rgb(255, 255, 255) !important;
+    }
+  `;
   }
 
   (document.head || document.documentElement).appendChild(style);
@@ -69,6 +74,26 @@ function removeFilter() {
   }
 }
 
+// Get filter settings from global store or use defaults
+function getFilterSettings(
+  filterId: string,
+  filterSettings: Record<string, Record<string, unknown>>
+): Record<string, unknown> {
+  if (filterSettings[filterId]) {
+    return filterSettings[filterId];
+  }
+  // Default settings per filter
+  const defaults: Record<string, Record<string, unknown>> = {
+    'rose-tint': { intensity: 40 },
+    'sunny-brown': { intensity: 45 },
+    'classic-gray': { intensity: 60 },
+    'emerald-green': { intensity: 35 },
+    'amber-vision': { intensity: 40 },
+    'solar-eclipse': { intensity: 100, excludeImages: true },
+  };
+  return defaults[filterId] || { intensity: 50 };
+}
+
 // Initialize filter immediately to prevent flash of unstyled content
 async function initializeFilter() {
   try {
@@ -79,6 +104,7 @@ async function initializeFilter() {
       extensionDisabled: false,
       websiteFilters: {},
       defaultFilter: null,
+      filterSettings: {},
     });
 
     if (data.extensionDisabled) return;
@@ -87,11 +113,12 @@ async function initializeFilter() {
     const websiteFilter = data.websiteFilters[domain];
 
     if (websiteFilter) {
-      const { filterId, settings } = websiteFilter;
+      const { filterId } = websiteFilter;
       // 'none' means explicitly no filter, don't fall back to default
       if (filterId === 'none') {
         return;
       }
+      const settings = getFilterSettings(filterId, data.filterSettings);
       const css = generateFilterCSS(filterId, settings);
       applyFilter(css, filterId, settings);
       return;
@@ -99,7 +126,8 @@ async function initializeFilter() {
 
     // Fall back to default filter if no domain-specific filter
     if (data.defaultFilter) {
-      const { filterId, settings } = data.defaultFilter;
+      const filterId = data.defaultFilter;
+      const settings = getFilterSettings(filterId, data.filterSettings);
       const css = generateFilterCSS(filterId, settings);
       applyFilter(css, filterId, settings);
     }

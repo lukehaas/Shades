@@ -6,6 +6,7 @@ import {
   setFilterForWebsite,
   removeFilterForWebsite,
   normalizeDomain,
+  getFilterSettings,
 } from '../utils/storage';
 import { generateFilterCSS, getFilterById } from '../utils/filters';
 
@@ -44,10 +45,10 @@ async function toggleCurrentFilter() {
 
     if (websiteFilter && websiteFilter.filterId !== 'none') {
       // Site-specific filter is active, turn it off
-      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+      await setFilterForWebsite(domain, 'none');
     } else if (!websiteFilter && defaultFilter) {
       // Default filter is applied, block it for this site
-      await setFilterForWebsite(domain, 'none', { intensity: 0 });
+      await setFilterForWebsite(domain, 'none');
     } else if (websiteFilter?.filterId === 'none') {
       // Filter is explicitly 'none', remove override to restore default
       await removeFilterForWebsite(domain);
@@ -72,18 +73,13 @@ async function toggleSolarEclipse() {
     const domain = normalizeDomain(url.hostname);
 
     const websiteFilter = await getFilterForWebsite(domain);
-    const solarEclipse = getFilterById('solar-eclipse');
 
     if (websiteFilter?.filterId === 'solar-eclipse') {
       // Solar eclipse is active, turn it off
-      await setFilterForWebsite(domain, 'none', { intensity: 0 });
-    } else if (solarEclipse) {
+      await setFilterForWebsite(domain, 'none');
+    } else {
       // Apply solar eclipse
-      await setFilterForWebsite(
-        domain,
-        'solar-eclipse',
-        solarEclipse.defaultSettings
-      );
+      await setFilterForWebsite(domain, 'solar-eclipse');
     }
   } catch (error) {
     console.error('Error toggling solar eclipse:', error);
@@ -104,7 +100,8 @@ chrome.storage.onChanged.addListener(async (changes) => {
   if (
     changes.websiteFilters ||
     changes.extensionDisabled ||
-    changes.defaultFilter
+    changes.defaultFilter ||
+    changes.filterSettings
   ) {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -173,33 +170,37 @@ async function applyFilterToTab(tabId: number) {
         return;
       }
 
-      const css = generateFilterCSS(
-        websiteFilter.filterId,
-        websiteFilter.settings
-      );
+      // Get global filter settings
+      const settings = await getFilterSettings(websiteFilter.filterId);
+      const filterDef = getFilterById(websiteFilter.filterId);
+      const finalSettings = settings || filterDef?.defaultSettings || { intensity: 50 };
+
+      const css = generateFilterCSS(websiteFilter.filterId, finalSettings);
 
       await sendMessageToTab(tabId, {
         action: 'applyFilter',
         css,
         filterId: websiteFilter.filterId,
-        settings: websiteFilter.settings,
+        settings: finalSettings,
       });
       return;
     }
 
     // Fall back to default filter if no domain-specific filter
-    const defaultFilter = await getDefaultFilter();
-    if (defaultFilter) {
-      const css = generateFilterCSS(
-        defaultFilter.filterId,
-        defaultFilter.settings
-      );
+    const defaultFilterId = await getDefaultFilter();
+    if (defaultFilterId) {
+      // Get global filter settings
+      const settings = await getFilterSettings(defaultFilterId);
+      const filterDef = getFilterById(defaultFilterId);
+      const finalSettings = settings || filterDef?.defaultSettings || { intensity: 50 };
+
+      const css = generateFilterCSS(defaultFilterId, finalSettings);
 
       await sendMessageToTab(tabId, {
         action: 'applyFilter',
         css,
-        filterId: defaultFilter.filterId,
-        settings: defaultFilter.settings,
+        filterId: defaultFilterId,
+        settings: finalSettings,
       });
     } else {
       await sendMessageToTab(tabId, { action: 'removeFilter' });

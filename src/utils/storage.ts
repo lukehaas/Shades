@@ -1,7 +1,6 @@
 import {
   StorageData,
   WebsiteFilter,
-  DefaultFilter,
   DEFAULT_STORAGE,
 } from '../types/storage';
 import { FilterId, FilterSettings } from '../types/filters';
@@ -31,11 +30,10 @@ export const getFilterForWebsite = async (
 
 export const setFilterForWebsite = async (
   domain: string,
-  filterId: FilterId,
-  settings: FilterSettings
+  filterId: FilterId
 ): Promise<void> => {
   const data = await getStorageData();
-  data.websiteFilters[domain] = { filterId, settings };
+  data.websiteFilters[domain] = { filterId };
   await chrome.storage.local.set({ websiteFilters: data.websiteFilters });
 };
 
@@ -68,20 +66,39 @@ export const getCurrentDomain = async (): Promise<string> => {
   }
 };
 
-export const getDefaultFilter = async (): Promise<DefaultFilter | null> => {
+export const getDefaultFilter = async (): Promise<FilterId | null> => {
   const data = await getStorageData();
   return data.defaultFilter;
 };
 
-export const setDefaultFilter = async (
-  filterId: FilterId,
-  settings: FilterSettings
-): Promise<void> => {
-  await chrome.storage.local.set({
-    defaultFilter: { filterId, settings },
-  });
+export const setDefaultFilter = async (filterId: FilterId): Promise<void> => {
+  await chrome.storage.local.set({ defaultFilter: filterId });
 };
 
 export const clearDefaultFilter = async (): Promise<void> => {
   await chrome.storage.local.set({ defaultFilter: null });
+};
+
+// Global filter settings functions
+export const getFilterSettings = async (
+  filterId: FilterId
+): Promise<FilterSettings | null> => {
+  const data = await getStorageData();
+  return data.filterSettings[filterId] || null;
+};
+
+export const getAllFilterSettings = async (): Promise<
+  Partial<Record<FilterId, FilterSettings>>
+> => {
+  const data = await getStorageData();
+  return data.filterSettings;
+};
+
+export const setFilterSettings = async (
+  filterId: FilterId,
+  settings: FilterSettings
+): Promise<void> => {
+  const data = await getStorageData();
+  data.filterSettings[filterId] = settings;
+  await chrome.storage.local.set({ filterSettings: data.filterSettings });
 };

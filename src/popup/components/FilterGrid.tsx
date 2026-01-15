@@ -15,7 +15,7 @@ const FilterGrid = ({ onFilterSettingsClick }: FilterGridProps) => {
     currentFilter && currentFilter.filterId !== 'none'
       ? currentFilter.filterId
       : !currentFilter && defaultFilter
-        ? defaultFilter.filterId
+        ? defaultFilter
         : null;
 
   const handleFilterClick = async (filterId: FilterId) => {
@@ -24,9 +24,9 @@ const FilterGrid = ({ onFilterSettingsClick }: FilterGridProps) => {
 
     if (activeFilterId === filterId) {
       // Clicking active filter sets to 'none' (explicitly no filter)
-      await applyFilter('none', { intensity: 0 });
+      await applyFilter('none');
     } else {
-      await applyFilter(filter.id, filter.defaultSettings);
+      await applyFilter(filter.id);
     }
   };
 

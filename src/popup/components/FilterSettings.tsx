@@ -21,11 +21,13 @@ const FilterSettings = ({
     currentFilter,
     applyFilter,
     defaultFilter,
+    filterSettings,
     setAsDefault,
     removeDefault,
+    saveFilterSettings,
   } = useApp();
   const filter = getFilterById(filterId);
-  const isCurrentDefault = defaultFilter?.filterId === filterId;
+  const isCurrentDefault = defaultFilter === filterId;
 
   const [settings, setSettings] = useState<FilterSettingsType>(
     filter?.defaultSettings || { intensity: 50 }
@@ -57,12 +59,13 @@ const FilterSettings = ({
   );
 
   useEffect(() => {
-    if (currentFilter?.filterId === filterId && currentFilter.settings) {
-      setSettings(currentFilter.settings);
+    // Load global filter settings, fall back to defaults
+    if (filterSettings[filterId]) {
+      setSettings(filterSettings[filterId]);
     } else if (filter) {
       setSettings(filter.defaultSettings);
     }
-  }, [currentFilter, filterId, filter]);
+  }, [filterSettings, filterId, filter]);
 
   // Send preview whenever settings change
   useEffect(() => {
@@ -86,16 +89,16 @@ const FilterSettings = ({
       });
       if (tab.id) {
         if (currentFilter) {
-          // Re-apply the saved filter
-          const css = generateFilterCSS(
-            currentFilter.filterId,
-            currentFilter.settings
-          );
+          // Re-apply the saved filter with global settings
+          const savedSettings = filterSettings[currentFilter.filterId] ||
+            getFilterById(currentFilter.filterId)?.defaultSettings ||
+            { intensity: 50 };
+          const css = generateFilterCSS(currentFilter.filterId, savedSettings);
           await chrome.tabs.sendMessage(tab.id, {
             action: 'applyFilter',
             css,
             filterId: currentFilter.filterId,
-            settings: currentFilter.settings,
+            settings: savedSettings,
           });
         } else {
           // No saved filter, remove the preview
@@ -111,16 +114,16 @@ const FilterSettings = ({
   };
 
   const handleApply = async () => {
-    await applyFilter(filter.id, settings);
+    // Save global filter settings
+    await saveFilterSettings(filter.id, settings);
+    // Apply filter to this site
+    await applyFilter(filter.id);
 
     // Handle default filter setting
     if (makeDefault && !isCurrentDefault) {
-      await setAsDefault(filter.id, settings);
+      await setAsDefault(filter.id);
     } else if (!makeDefault && isCurrentDefault) {
       await removeDefault();
-    } else if (makeDefault && isCurrentDefault) {
-      // Update default settings if already default
-      await setAsDefault(filter.id, settings);
     }
 
     onApply();

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterId, FilterSettings } from '../../types/filters';
-import { WebsiteFilter, DefaultFilter } from '../../types/storage';
+import { WebsiteFilter } from '../../types/storage';
 import {
   getCurrentDomain,
   getExtensionDisabled,
@@ -12,6 +12,8 @@ import {
   getDefaultFilter,
   setDefaultFilter,
   clearDefaultFilter,
+  getAllFilterSettings,
+  setFilterSettings as saveFilterSettingsToStorage,
 } from '../../utils/storage';
 
 interface AppContextType {
@@ -19,13 +21,15 @@ interface AppContextType {
   extensionDisabled: boolean;
   currentFilter: WebsiteFilter | null;
   websiteFilters: Record<string, WebsiteFilter>;
-  defaultFilter: DefaultFilter | null;
+  defaultFilter: FilterId | null;
+  filterSettings: Partial<Record<FilterId, FilterSettings>>;
   isLoading: boolean;
   toggleExtension: () => Promise<void>;
-  applyFilter: (filterId: FilterId, settings: FilterSettings) => Promise<void>;
+  applyFilter: (filterId: FilterId) => Promise<void>;
   removeFilter: (domain?: string) => Promise<void>;
-  setAsDefault: (filterId: FilterId, settings: FilterSettings) => Promise<void>;
+  setAsDefault: (filterId: FilterId) => Promise<void>;
   removeDefault: () => Promise<void>;
+  saveFilterSettings: (filterId: FilterId, settings: FilterSettings) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -52,7 +56,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [websiteFilters, setWebsiteFilters] = useState<
     Record<string, WebsiteFilter>
   >({});
-  const [defaultFilterState, setDefaultFilterState] = useState<DefaultFilter | null>(null);
+  const [defaultFilterState, setDefaultFilterState] = useState<FilterId | null>(null);
+  const [filterSettingsState, setFilterSettingsState] = useState<
+    Partial<Record<FilterId, FilterSettings>>
+  >({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadData = async () => {
@@ -63,12 +70,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       const filter = await getFilterForWebsite(domain);
       const allFilters = await getWebsiteFilters();
       const defaultFlt = await getDefaultFilter();
+      const allFilterSettings = await getAllFilterSettings();
 
       setCurrentDomain(domain);
       setExtensionDisabledState(disabled);
       setCurrentFilter(filter);
       setWebsiteFilters(allFilters);
       setDefaultFilterState(defaultFlt);
+      setFilterSettingsState(allFilterSettings);
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +103,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setExtensionDisabledState(newState);
   };
 
-  const applyFilter = async (filterId: FilterId, settings: FilterSettings) => {
+  const applyFilter = async (filterId: FilterId) => {
     if (!currentDomain) return;
-    await setFilterForWebsite(currentDomain, filterId, settings);
+    await setFilterForWebsite(currentDomain, filterId);
     await loadData();
   };
 
@@ -111,13 +120,18 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     await loadData();
   };
 
-  const setAsDefault = async (filterId: FilterId, settings: FilterSettings) => {
-    await setDefaultFilter(filterId, settings);
+  const setAsDefault = async (filterId: FilterId) => {
+    await setDefaultFilter(filterId);
     await loadData();
   };
 
   const removeDefault = async () => {
     await clearDefaultFilter();
+    await loadData();
+  };
+
+  const saveFilterSettings = async (filterId: FilterId, settings: FilterSettings) => {
+    await saveFilterSettingsToStorage(filterId, settings);
     await loadData();
   };
 
@@ -129,12 +143,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         currentFilter,
         websiteFilters,
         defaultFilter: defaultFilterState,
+        filterSettings: filterSettingsState,
         isLoading,
         toggleExtension,
         applyFilter,
         removeFilter,
         setAsDefault,
         removeDefault,
+        saveFilterSettings,
         refreshData,
       }}
     >

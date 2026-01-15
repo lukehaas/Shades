@@ -9,6 +9,19 @@ Pick from a selection of sunglasses inspired filters and browse the web in comfo
 
 ![sunglasses](/assets/images/brian-breakfast-club.jpg)
 
+## Download
+
+<table cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="center">
+      <a align="center" href="https://chromewebstore.google.com/detail/shades-because-the-web-is/cnmgiengbdlfjgfocfagcnlimkmpclid">
+        <img src="https://raw.githubusercontent.com/lukehaas/Shades/refs/heads/main/assets/images/chrome-store.png" alt="Chrome web store" />
+        <p align="center">Chrome Web Store</p>
+      </a>
+    </td>
+  </tr>
+</table>
+
 ## Why another color filtering extension?
 
 I have three reasons for this.
@@ -36,16 +49,3 @@ Control which websites get which filter.
 ## Example
 
 ![example](/assets/images/example.png)
-
-## Download
-
-<table cellspacing="0" cellpadding="0">
-  <tr>
-    <td valign="center">
-      <a align="center" href="https://chromewebstore.google.com/detail/shades-because-the-web-is/cnmgiengbdlfjgfocfagcnlimkmpclid">
-        <img src="https://raw.githubusercontent.com/lukehaas/Shades/refs/heads/main/assets/images/chrome-store.png" alt="Chrome web store" />
-        <p align="center">Chrome Web Store</p>
-      </a>
-    </td>
-  </tr>
-</table>

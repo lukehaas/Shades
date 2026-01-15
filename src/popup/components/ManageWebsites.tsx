@@ -17,16 +17,7 @@ const ManageWebsites = ({ onBack }: ManageWebsitesProps) => {
   );
 
   const handleFilterChange = async (domain: string, newFilterId: FilterId) => {
-    if (newFilterId === 'none') {
-      await setFilterForWebsite(domain, 'none', { intensity: 0 });
-      await refreshData();
-      return;
-    }
-
-    const filter = FILTERS.find((f) => f.id === newFilterId);
-    if (!filter) return;
-
-    await setFilterForWebsite(domain, newFilterId, filter.defaultSettings);
+    await setFilterForWebsite(domain, newFilterId);
     await refreshData();
   };
 
