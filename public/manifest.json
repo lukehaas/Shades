@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Shades - Because the web is too bright",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Protect your eyes while browsing the web. Apply color filters to reduce eye strain, filter blue light, and enhance visual comfort.",
   "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": ["<all_urls>"],

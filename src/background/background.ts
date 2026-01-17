@@ -108,7 +108,7 @@ chrome.storage.onChanged.addListener(async (changes) => {
       currentWindow: true,
     });
     if (tab.id) {
-      await applyFilterToTab(tab.id);
+      await applyFilterToTab(tab.id, true);
     }
   }
 });
@@ -126,7 +126,8 @@ function isRestrictedUrl(url: string): boolean {
 
 async function sendMessageToTab(
   tabId: number,
-  message: Record<string, unknown>
+  message: Record<string, unknown>,
+  shouldReload = false
 ): Promise<boolean> {
   try {
     await chrome.tabs.sendMessage(tabId, message);
@@ -134,6 +135,7 @@ async function sendMessageToTab(
   } catch {
     // Content script not injected (e.g., tab was open before extension installed)
     // Reload the tab so the content script gets injected
+    if (!shouldReload) return false;
     try {
       await chrome.tabs.reload(tabId);
       return false; // Message wasn't sent, but tab will reload with content script
@@ -144,7 +146,7 @@ async function sendMessageToTab(
   }
 }
 
-async function applyFilterToTab(tabId: number) {
+async function applyFilterToTab(tabId: number, shouldReload = false) {
   try {
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return;
@@ -157,7 +159,7 @@ async function applyFilterToTab(tabId: number) {
 
     const disabled = await getExtensionDisabled();
     if (disabled) {
-      await sendMessageToTab(tabId, { action: 'removeFilter' });
+      await sendMessageToTab(tabId, { action: 'removeFilter' }, shouldReload);
       return;
     }
 
@@ -166,23 +168,28 @@ async function applyFilterToTab(tabId: number) {
     if (websiteFilter) {
       // 'none' means explicitly no filter, don't fall back to default
       if (websiteFilter.filterId === 'none') {
-        await sendMessageToTab(tabId, { action: 'removeFilter' });
+        await sendMessageToTab(tabId, { action: 'removeFilter' }, shouldReload);
         return;
       }
 
       // Get global filter settings
       const settings = await getFilterSettings(websiteFilter.filterId);
       const filterDef = getFilterById(websiteFilter.filterId);
-      const finalSettings = settings || filterDef?.defaultSettings || { intensity: 50 };
+      const finalSettings = settings ||
+        filterDef?.defaultSettings || { intensity: 50 };
 
       const css = generateFilterCSS(websiteFilter.filterId, finalSettings);
 
-      await sendMessageToTab(tabId, {
-        action: 'applyFilter',
-        css,
-        filterId: websiteFilter.filterId,
-        settings: finalSettings,
-      });
+      await sendMessageToTab(
+        tabId,
+        {
+          action: 'applyFilter',
+          css,
+          filterId: websiteFilter.filterId,
+          settings: finalSettings,
+        },
+        shouldReload
+      );
       return;
     }
 
@@ -192,18 +199,23 @@ async function applyFilterToTab(tabId: number) {
       // Get global filter settings
       const settings = await getFilterSettings(defaultFilterId);
       const filterDef = getFilterById(defaultFilterId);
-      const finalSettings = settings || filterDef?.defaultSettings || { intensity: 50 };
+      const finalSettings = settings ||
+        filterDef?.defaultSettings || { intensity: 50 };
 
       const css = generateFilterCSS(defaultFilterId, finalSettings);
 
-      await sendMessageToTab(tabId, {
-        action: 'applyFilter',
-        css,
-        filterId: defaultFilterId,
-        settings: finalSettings,
-      });
+      await sendMessageToTab(
+        tabId,
+        {
+          action: 'applyFilter',
+          css,
+          filterId: defaultFilterId,
+          settings: finalSettings,
+        },
+        shouldReload
+      );
     } else {
-      await sendMessageToTab(tabId, { action: 'removeFilter' });
+      await sendMessageToTab(tabId, { action: 'removeFilter' }, shouldReload);
     }
   } catch (error) {
     console.error('Error applying filter to tab:', error);
