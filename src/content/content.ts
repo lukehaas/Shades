@@ -32,6 +32,7 @@ function applyFilter(
 
   style.textContent = `
     #${FILTER_OVERLAY_ID} {
+      display: block !important;
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
@@ -44,10 +45,9 @@ function applyFilter(
   `;
   if (filterId === 'solar-eclipse') {
     if (settings.excludeImages) {
-      const intensity = (settings.intensity as number) / 100 || 1;
       style.textContent += `
-    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, iframe, smp-toucan-player, [style*="background-image"] {
-      filter: invert(${intensity}) !important;
+    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, iframe, nyt-video-feed::part(player), smp-toucan-player, [style*="background-image"] {
+      filter: invert(1) !important;
     }
     `;
     }

@@ -34,7 +34,9 @@ const FilterGrid = ({ onFilterSettingsClick }: FilterGridProps) => {
     <div className="space-y-6">
       {currentDomain && (
         <div className="text-center">
-          <p className="text-2xl font-semibold text-slate-50">{currentDomain}</p>
+          <p className="text-2xl font-semibold text-slate-50 text-ellipsis overflow-hidden whitespace-nowrap">
+            {currentDomain}
+          </p>
         </div>
       )}
 
