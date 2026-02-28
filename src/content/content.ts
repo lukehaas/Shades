@@ -46,7 +46,8 @@ function applyFilter(
   if (filterId === 'solar-eclipse') {
     if (settings.excludeImages) {
       style.textContent += `
-    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, nyt-video-feed::part(player), smp-toucan-player, [style*="background-image"] {
+    img:not([src$=".svg"]):not([src*=".svg?"]), video, canvas, nyt-video-feed::part(player), smp-toucan-player, [style*="background-image"],
+    iframe[allow*="autoplay"], iframe[allow*="fullscreen"], iframe[allowfullscreen] {
       filter: invert(1) !important;
     }
     [style*="background-image"] img,
