@@ -136,7 +136,7 @@ const FilterSettings = ({
       <div className="flex-1 flex flex-col justify-around py-6">
         <div className="text-center">
           <img
-            src={`/icons/filters/${filter.id}.png`}
+            src={`/icons/filters/${filter.id}.svg`}
             alt={filter.name}
             className="w-48 h-auto mx-auto mb-4 drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
           />

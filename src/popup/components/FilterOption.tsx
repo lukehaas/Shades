@@ -29,7 +29,7 @@ const FilterOption = ({
     >
       <div className="flex flex-col items-center gap-2">
         <img
-          src={`/icons/filters/${filter.id}.png`}
+          src={`/icons/filters/${filter.id}.svg`}
           alt={filter.name}
           className="w-32 h-auto drop-shadow-[0_10px_8px_rgba(0,0,0,0.3)]"
         />
