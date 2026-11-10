@@ -12,3 +12,6 @@ yarn-error.log*
 *.swo
 CLAUDE.md
 *.zip
+.output/
+.wxt/
+web-ext.config.ts

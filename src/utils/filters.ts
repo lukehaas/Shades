@@ -1,4 +1,6 @@
-import { Filter, FilterId, FilterSettings } from '../types/filters';
+import type { Filter, FilterId, FilterSettings } from '../types/filters';
+import type { StorageData } from '../types/storage';
+import type { ContentMessage } from '../types/messages';
 
 export const FILTERS: Filter[] = [
   {
@@ -165,4 +167,37 @@ export const generateFilterCSS = (
   };
 
   return filterStyles[filterId] || '';
+};
+
+const getEffectiveSettings = (
+  filterId: FilterId,
+  filterSettings: StorageData['filterSettings']
+): FilterSettings => {
+  return (
+    filterSettings[filterId] ||
+    getFilterById(filterId)?.defaultSettings || { intensity: 50 }
+  );
+};
+
+/**
+ * Work out what the content script for `domain` should show, given the
+ * stored data. A site-specific filter wins; an explicit 'none' blocks the
+ * default filter; otherwise the default filter (if any) applies.
+ */
+export const resolveFilterMessage = (
+  data: StorageData,
+  domain: string
+): ContentMessage => {
+  if (data.extensionDisabled) return { action: 'removeFilter' };
+
+  const filterId = data.websiteFilters[domain]?.filterId ?? data.defaultFilter;
+  if (!filterId || filterId === 'none') return { action: 'removeFilter' };
+
+  const settings = getEffectiveSettings(filterId, data.filterSettings);
+  return {
+    action: 'applyFilter',
+    css: generateFilterCSS(filterId, settings),
+    filterId,
+    settings,
+  };
 };

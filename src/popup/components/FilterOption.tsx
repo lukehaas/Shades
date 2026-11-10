@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Filter } from '../../types/filters';
+import type { Filter } from '../../types/filters';
 
 interface FilterOptionProps {
   filter: Filter;

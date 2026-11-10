@@ -1,7 +1,7 @@
 import { useApp } from '../context/AppContext';
 import FilterOption from './FilterOption';
 import { FILTERS } from '../../utils/filters';
-import { FilterId } from '../../types/filters';
+import type { FilterId } from '../../types/filters';
 
 interface FilterGridProps {
   onFilterSettingsClick: (filterId: FilterId) => void;

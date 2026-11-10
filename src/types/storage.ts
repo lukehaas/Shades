@@ -1,4 +1,4 @@
-import { FilterId, FilterSettings } from './filters';
+import type { FilterId, FilterSettings } from './filters';
 
 // Website filter now only stores the filter ID - settings are global per-filter
 export interface WebsiteFilter {

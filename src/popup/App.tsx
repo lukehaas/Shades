@@ -6,7 +6,8 @@ import FilterSettings from './components/FilterSettings';
 import ManageWebsites from './components/ManageWebsites';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
-import { FilterId } from '../types/filters';
+import SiteAccessBanner from './components/SiteAccessBanner';
+import type { FilterId } from '../types/filters';
 
 type View = 'main' | 'filterSettings' | 'manageWebsites';
 
@@ -57,6 +58,7 @@ function AppContent() {
       <Header
         onSettingsClick={() => setCurrentView('manageWebsites')}
       />
+      <SiteAccessBanner />
       <main className="p-4 flex-1 flex flex-col min-h-0">
         {isLoading ? (
           <LoadingSpinner />

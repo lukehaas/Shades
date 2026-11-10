@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { FilterId, FilterSettings } from '../../types/filters';
-import { WebsiteFilter } from '../../types/storage';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { browser } from 'wxt/browser';
+import type { FilterId, FilterSettings } from '../../types/filters';
+import type { WebsiteFilter } from '../../types/storage';
 import {
   getCurrentDomain,
   getExtensionDisabled,
@@ -35,6 +37,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {
@@ -90,10 +93,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       loadData();
     };
 
-    chrome.storage.onChanged.addListener(handleStorageChange);
+    browser.storage.onChanged.addListener(handleStorageChange);
 
     return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
+      browser.storage.onChanged.removeListener(handleStorageChange);
     };
   }, []);
 

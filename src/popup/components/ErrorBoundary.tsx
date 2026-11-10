@@ -1,4 +1,5 @@
-import { Component, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Component } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -19,7 +20,7 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Shades extension error:', error, errorInfo);
   }
 
@@ -27,7 +28,7 @@ class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null });
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div className="p-6 text-center">

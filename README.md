@@ -49,3 +49,26 @@ Control which websites get which filter.
 ## Example
 
 ![example](/assets/images/example.png)
+
+## Building from source
+
+Shades is built with [WXT](https://wxt.dev) and produces separate builds for Chrome and Firefox from the same code.
+
+Requirements: Node.js (version in `.nvmrc`) and npm.
+
+```sh
+nvm use
+npm ci
+
+# Development (opens a browser with the extension loaded and hot reload)
+npm run dev            # Chrome
+npm run dev:firefox    # Firefox
+
+# Production builds, output to .output/chrome-mv3 and .output/firefox-mv3
+npm run build
+npm run build:firefox
+
+# Store-ready zips, output to .output/
+npm run zip            # Chrome Web Store
+npm run zip:firefox    # Firefox Add-ons (also produces the sources zip for review)
+```

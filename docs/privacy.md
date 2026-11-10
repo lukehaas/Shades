@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: January 2025**
+**Last updated: November 2026**
 
 ## Overview
 
@@ -18,7 +18,7 @@ Shades does **not** collect, store, or transmit any of the following:
 
 ## Local Storage
 
-Shades uses Chrome's local storage API (`chrome.storage.local`) to save your preferences directly on your device. This data includes:
+Shades uses the browser's extension storage API (`storage.local`) to save your preferences directly on your device. This data includes:
 
 - Your filter settings for individual websites
 - Your default filter preferences
@@ -33,6 +33,7 @@ Shades requires the following permissions to function:
 - **Storage**: To save your filter preferences locally on your device
 - **ActiveTab**: To apply filters to the current webpage
 - **Tabs**: To detect the current website domain for applying saved filters
+- **Access to all websites**: To draw the filter overlay on the pages you visit. Page content is never read or sent anywhere
 
 These permissions are used solely to provide the core functionality of the extension.
 

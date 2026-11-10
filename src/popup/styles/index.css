@@ -5,6 +5,9 @@
 html, body {
   margin: 0;
   padding: 0;
+  /* Match the app background: Firefox's popup panel is larger than the content
+     and shows its own (white) background through a transparent page */
+  background-color: theme('colors.slate.800');
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -12,8 +15,10 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Height fits the main view exactly: header + domain + three rows of filters + padding.
+   Firefox caps popups at 800x600 */
 #root {
   width: 480px;
-  height: 552px;
+  height: 568px;
   overflow: hidden;
 }

@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { browser } from 'wxt/browser';
 import { useApp } from '../context/AppContext';
-import { getFilterById, generateFilterCSS } from '../../utils/filters';
 import {
+  getFilterById,
+  generateFilterCSS,
+  resolveFilterMessage,
+} from '../../utils/filters';
+import { getStorageData } from '../../utils/storage';
+import type {
   FilterId,
   FilterSettings as FilterSettingsType,
 } from '../../types/filters';
+import type { ContentMessage } from '../../types/messages';
 
 interface FilterSettingsProps {
   filterId: FilterId;
@@ -18,7 +25,7 @@ const FilterSettings = ({
   onApply,
 }: FilterSettingsProps) => {
   const {
-    currentFilter,
+    currentDomain,
     applyFilter,
     defaultFilter,
     filterSettings,
@@ -38,19 +45,19 @@ const FilterSettings = ({
   const sendPreview = useCallback(
     async (previewSettings: FilterSettingsType) => {
       try {
-        const [tab] = await chrome.tabs.query({
+        const [tab] = await browser.tabs.query({
           active: true,
           currentWindow: true,
         });
-        if (!tab.id) return;
+        if (!tab?.id) return;
 
-        const css = generateFilterCSS(filterId, previewSettings);
-        await chrome.tabs.sendMessage(tab.id, {
+        const message: ContentMessage = {
           action: 'applyFilter',
-          css,
+          css: generateFilterCSS(filterId, previewSettings),
           filterId,
           settings: previewSettings,
-        });
+        };
+        await browser.tabs.sendMessage(tab.id, message);
       } catch (error) {
         console.error('Error sending preview:', error);
       }
@@ -83,29 +90,17 @@ const FilterSettings = ({
   const handleCancel = async () => {
     // Revert to the saved filter state by re-applying what's in storage
     try {
-      const [tab] = await chrome.tabs.query({
+      const [tab] = await browser.tabs.query({
         active: true,
         currentWindow: true,
       });
-      if (tab.id) {
-        if (currentFilter) {
-          // Re-apply the saved filter with global settings
-          const savedSettings = filterSettings[currentFilter.filterId] ||
-            getFilterById(currentFilter.filterId)?.defaultSettings ||
-            { intensity: 50 };
-          const css = generateFilterCSS(currentFilter.filterId, savedSettings);
-          await chrome.tabs.sendMessage(tab.id, {
-            action: 'applyFilter',
-            css,
-            filterId: currentFilter.filterId,
-            settings: savedSettings,
-          });
-        } else {
-          // No saved filter, remove the preview
-          await chrome.tabs.sendMessage(tab.id, {
-            action: 'removeFilter',
-          });
-        }
+      if (tab?.id) {
+        const data = await getStorageData();
+        const message: ContentMessage = resolveFilterMessage(
+          data,
+          currentDomain
+        );
+        await browser.tabs.sendMessage(tab.id, message);
       }
     } catch (error) {
       console.error('Error reverting filter:', error);

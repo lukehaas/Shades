@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { FILTERS } from '../../utils/filters';
-import { FilterId } from '../../types/filters';
+import type { FilterId } from '../../types/filters';
 import { setFilterForWebsite } from '../../utils/storage';
 
 interface ManageWebsitesProps {

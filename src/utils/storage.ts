@@ -1,17 +1,18 @@
-import {
+import { browser } from 'wxt/browser';
+import type {
   StorageData,
-  WebsiteFilter,
+  WebsiteFilter} from '../types/storage';
+import {
   DEFAULT_STORAGE,
 } from '../types/storage';
-import { FilterId, FilterSettings } from '../types/filters';
+import type { FilterId, FilterSettings } from '../types/filters';
 
 export const normalizeDomain = (hostname: string): string => {
   return hostname.replace(/^www\./, '');
 };
 
 export const getStorageData = async (): Promise<StorageData> => {
-  const result = await chrome.storage.local.get(DEFAULT_STORAGE);
-  return result as StorageData;
+  return browser.storage.local.get<StorageData>(DEFAULT_STORAGE);
 };
 
 export const getWebsiteFilters = async (): Promise<
@@ -34,7 +35,7 @@ export const setFilterForWebsite = async (
 ): Promise<void> => {
   const data = await getStorageData();
   data.websiteFilters[domain] = { filterId };
-  await chrome.storage.local.set({ websiteFilters: data.websiteFilters });
+  await browser.storage.local.set({ websiteFilters: data.websiteFilters });
 };
 
 export const removeFilterForWebsite = async (
@@ -42,7 +43,7 @@ export const removeFilterForWebsite = async (
 ): Promise<void> => {
   const data = await getStorageData();
   delete data.websiteFilters[domain];
-  await chrome.storage.local.set({ websiteFilters: data.websiteFilters });
+  await browser.storage.local.set({ websiteFilters: data.websiteFilters });
 };
 
 export const getExtensionDisabled = async (): Promise<boolean> => {
@@ -51,12 +52,12 @@ export const getExtensionDisabled = async (): Promise<boolean> => {
 };
 
 export const setExtensionDisabled = async (disabled: boolean): Promise<void> => {
-  await chrome.storage.local.set({ extensionDisabled: disabled });
+  await browser.storage.local.set({ extensionDisabled: disabled });
 };
 
 export const getCurrentDomain = async (): Promise<string> => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab.url) return '';
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.url) return '';
 
   try {
     const url = new URL(tab.url);
@@ -72,11 +73,11 @@ export const getDefaultFilter = async (): Promise<FilterId | null> => {
 };
 
 export const setDefaultFilter = async (filterId: FilterId): Promise<void> => {
-  await chrome.storage.local.set({ defaultFilter: filterId });
+  await browser.storage.local.set({ defaultFilter: filterId });
 };
 
 export const clearDefaultFilter = async (): Promise<void> => {
-  await chrome.storage.local.set({ defaultFilter: null });
+  await browser.storage.local.set({ defaultFilter: null });
 };
 
 // Global filter settings functions
@@ -100,5 +101,5 @@ export const setFilterSettings = async (
 ): Promise<void> => {
   const data = await getStorageData();
   data.filterSettings[filterId] = settings;
-  await chrome.storage.local.set({ filterSettings: data.filterSettings });
+  await browser.storage.local.set({ filterSettings: data.filterSettings });
 };
